@@ -27,9 +27,9 @@ const transitions = [
 
 /*  Formatter  */
 
-const formatter = new Intl.NumberFormat('en-US', {
-    style: 'curremcy',
-    currency: 'USD',
+const formatter = new Intl.NumberFormat('pt-MZ', {
+    style: 'currency',
+    currency: 'MZN',
     signDisplay: "always",
 
 });
@@ -37,6 +37,9 @@ const formatter = new Intl.NumberFormat('en-US', {
 
 const list = document.getElementById("transitionList");
 const status = document.getElementById("status");
+const form = document.getElementById("transitionForm");
+
+form.addEventListener('submit', addTransaction)
 
 /*   */
 
@@ -48,17 +51,23 @@ function renderList() {
         return;
     }
 
-    transitions.forEach(({ name, amount, date, type}) => {
+    transitions.forEach(({ id, name, amount, date, type}) => {
         const li = document.createElement('li');
 
         li.innerHTML = `
-            <div class="name">
+            <div class="name ${type}">
                 <h4>${name}</h4>
                 <p>${new Date(date).toLocaleDateString()}</p>
             </div>
 
             <div class="amount">
-                <span>${formatter}</span>
+                <span>${formatter.format(amount)}</span>
+            </div>
+
+            <div class="action">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" onclick="deleteTransition(${id})">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
             </div>
         `;
 
@@ -67,3 +76,26 @@ function renderList() {
 }
 
 renderList()
+
+function deleteTransition (id){
+   const index = transitions.findIndex((trx) => trx.id === id);
+   transitions.splice(index, 1);
+
+   renderList();
+}
+
+function addTransaction(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    transitions.push({
+        id: transitions.length + 1,
+        name: formData.get("name"),
+        amount: parseFloat(formData.get('amount')),
+        date: new Date(formData.get("date")),
+    });
+
+    this.reset();
+
+    renderList();
+}
